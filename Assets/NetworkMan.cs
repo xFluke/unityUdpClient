@@ -6,13 +6,15 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using Unity.Mathematics;
+using UnityEditorInternal;
 
 public class NetworkMan : MonoBehaviour
 {
     [SerializeField]
     GameObject playerPrefab;
 
-    private List<NewPlayer> unspawnedPlayers = new List<NewPlayer>();
+ 
+    public List<NewPlayer> unspawnedPlayers = new List<NewPlayer>();
     public List<Player> connectedPlayers = new List<Player>();
 
     public UdpClient udp;
@@ -43,7 +45,8 @@ public class NetworkMan : MonoBehaviour
     public enum commands{
         NEW_CLIENT,
         UPDATE,
-        DROP_CLIENT
+        DROP_CLIENT,
+        INFORM_CLIENT
     };
     
     [Serializable]
@@ -95,6 +98,7 @@ public class NetworkMan : MonoBehaviour
             switch(latestMessage.cmd){
                 case commands.NEW_CLIENT:
                     NewPlayer newPlayer = JsonUtility.FromJson<NewPlayer>(returnData);
+                    Debug.Log("ADDING NEW CLIENT");
                     unspawnedPlayers.Add(newPlayer);
                     break;
                 case commands.UPDATE:
@@ -103,6 +107,8 @@ public class NetworkMan : MonoBehaviour
                 case commands.DROP_CLIENT:
                     Player droppedPlayer = JsonUtility.FromJson<Player>(returnData);
                     DestroyPlayer(droppedPlayer.id);
+                    break;
+                case commands.INFORM_CLIENT:
                     break;
                 default:
                     Debug.Log("Error");
@@ -118,10 +124,13 @@ public class NetworkMan : MonoBehaviour
     }
 
     void SpawnPlayers() {
+        if (unspawnedPlayers.Count <= 0)
+            return;
+
         foreach (NewPlayer newPlayer in unspawnedPlayers) {
             GameObject npCube = Instantiate(playerPrefab);
             npCube.GetComponent<PlayerScript>().NetworkID = newPlayer.player.id;
-
+            
             newPlayer.player.cube = npCube;
             connectedPlayers.Add(newPlayer.player);
             unspawnedPlayers.Remove(newPlayer);
@@ -140,6 +149,9 @@ public class NetworkMan : MonoBehaviour
     }
 
     void DestroyPlayer(string id) {
+        if (connectedPlayers.Count <= 0)
+            return;
+
         foreach (Player player in connectedPlayers) {
             if (player.id == id) {
                 player.cube.GetComponent<PlayerScript>().Disconnected = true;
