@@ -321,9 +321,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 3503949475248254946, guid: 02eea84965c727d4b9eb6f860392c411,
     type: 3}
+  newPlayers: []
+  disconnectedPlayers: []
+  latestGameState:
+    pktID: 0
+    players: []
   latestMessage:
     cmd: 0
-  lastestGameState:
+  initialSetOfPlayers:
     players: []
 --- !u!1 &963194225
 GameObject:
